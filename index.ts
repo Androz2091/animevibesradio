@@ -1,16 +1,20 @@
 import { config } from 'dotenv';
 config();
 
-import { initialize as initializeDatabase } from './database';
+import { initialize as initializeDatabase, ServerPlayingStatus } from './database';
 import { loadMessageCommands, loadSlashCommands } from './commands';
 
 import { syncSheets } from './sheets';
 
 import { Client, Intents } from 'discord.js';
+import { getConnection, In } from 'typeorm';
+import { DiscordGatewayAdapterCreator, joinVoiceChannel } from '@discordjs/voice';
+import { subscribeToPlayer } from './player';
 export const client = new Client({
     intents: [
         Intents.FLAGS.GUILDS,
-        Intents.FLAGS.GUILD_MESSAGES
+        Intents.FLAGS.GUILD_MESSAGES,
+        Intents.FLAGS.GUILD_VOICE_STATES
     ]
 });
 
@@ -55,8 +59,22 @@ client.on('ready', () => {
     console.log(`Logged in as ${client.user!.tag}. Ready to serve ${client.users.cache.size} users in ${client.guilds.cache.size} servers 🚀`);
 
     if (process.env.DB_NAME) {
-        initializeDatabase().then(() => {
+        initializeDatabase().then(async () => {
             console.log('Database initialized 📦');
+
+            const statuses = await getConnection().getRepository(ServerPlayingStatus).find();
+            statuses.forEach((status) => {
+
+                const guild = client.guilds.cache.get(status.guildId)!;
+                if (!guild) return;
+                const connection = joinVoiceChannel({
+                    channelId: status.channelId,
+                    guildId: status.guildId,
+                    adapterCreator: guild.voiceAdapterCreator as DiscordGatewayAdapterCreator
+                });
+
+                subscribeToPlayer(connection);
+            });
         });
     } else {
         console.log('Database not initialized, as no keys were specified 📦');

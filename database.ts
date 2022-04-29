@@ -6,20 +6,43 @@ export const initialize = () => createConnection({
     database: process.env.DB_NAME,
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
-    entities: [User],
+    entities: [ServerPlayingStatus],
     synchronize: process.env.ENVIRONMENT === 'development',
 });
 
 @Entity()
-export class User {
+export class ServerPlayingStatus {
     @PrimaryGeneratedColumn()
     id!: number;
+
+    @Column()
+    playing!: boolean;
 
     @Column({
         length: 32
     })
-    userId!: string;
+    guildId!: string;
 
-    @Column()
-    money!: number;
+    @Column({
+        length: 32,
+        nullable: true
+    })
+    channelId!: string;
+
+    @Column({
+        length: 32,
+        nullable: true
+    })
+    starterUserId!: string;
+
+    @Column({
+        length: 32,
+        nullable: true
+    })
+    djRoleId!: string;
+
+    @Column({
+        default: 100
+    })
+    volume!: number;
 }
