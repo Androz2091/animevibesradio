@@ -1,5 +1,6 @@
 import { AudioPlayerStatus, createAudioPlayer, createAudioResource, NoSubscriberBehavior, VoiceConnection } from "@discordjs/voice";
 import { readdirSync } from "fs";
+import { join } from "path";
 
 const player = createAudioPlayer({
     behaviors: {
@@ -29,8 +30,8 @@ const getNextMedia = () => {
         idx = 0;
     }
 
-    currentlyPlaying = media;
-    return createAudioResource(media);
+    currentlyPlaying = media.substring(0, media.length - 4);
+    return createAudioResource(join("./medias/", media));
 }
 
 player.on('error', error => {
@@ -38,6 +39,12 @@ player.on('error', error => {
 });
 
 player.play(getNextMedia());
+
+player.on(AudioPlayerStatus.Playing, () => {
+    console.log(`Now playing: ${getCurrentlyPlaying()}`);
+});
+
+player.on('debug', console.log);
 
 player.on(AudioPlayerStatus.Idle, () => {
 	player.play(getNextMedia());
