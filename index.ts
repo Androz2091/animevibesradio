@@ -8,7 +8,7 @@ import { syncSheets } from './sheets';
 
 import { Client, IntentsBitField } from 'discord.js';
 import { getConnection, In } from 'typeorm';
-import { DiscordGatewayAdapterCreator, joinVoiceChannel } from '@discordjs/voice';
+import { DiscordGatewayAdapterCreator, joinVoiceChannel, VoiceConnectionStatus, entersState } from '@discordjs/voice';
 import { subscribeToPlayer } from './player';
 export const client = new Client({
     intents: [
@@ -71,6 +71,19 @@ client.on('ready', () => {
                     channelId: status.channelId,
                     guildId: status.guildId,
                     adapterCreator: guild.voiceAdapterCreator as DiscordGatewayAdapterCreator
+                });
+
+                connection.on(VoiceConnectionStatus.Disconnected, async (oldState, newState) => {
+                    try {
+                        await Promise.race([
+                            entersState(connection, VoiceConnectionStatus.Signalling, 5_000),
+                            entersState(connection, VoiceConnectionStatus.Connecting, 5_000),
+                        ]);
+                        // Seems to be reconnecting to a new channel - ignore disconnect
+                    } catch (error) {
+                        // Seems to be a real disconnect which SHOULDN'T be recovered from
+                        connection.destroy();
+                    }
                 });
 
                 subscribeToPlayer(connection);
