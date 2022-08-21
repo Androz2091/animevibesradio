@@ -1,4 +1,4 @@
-import { CommandInteraction, GuildMember } from "discord.js";
+import { CommandInteraction, GuildMember, PermissionsBitField } from "discord.js";
 import { getConnection } from "typeorm";
 import { SlashCommandRunFunction } from "../commands";
 import { ServerPlayingStatus } from "../database";
@@ -22,7 +22,7 @@ export const run: SlashCommandRunFunction = async (interaction) => {
         guildId: interaction.guildId!
     }) ?? new ServerPlayingStatus();
     
-    if (!member.permissions.has("ADMINISTRATOR") && (!status?.djRoleId || !member.roles.cache.has(status.djRoleId))) {
+    if (!member.permissions.has(PermissionsBitField.Flags.Administrator) && (!status?.djRoleId || !member.roles.cache.has(status.djRoleId))) {
         return interaction.reply(errorEmbed("You need to be an administrator or DJ to use this command!"));
     }
 

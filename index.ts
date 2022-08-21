@@ -6,15 +6,15 @@ import { loadMessageCommands, loadSlashCommands } from './commands';
 
 import { syncSheets } from './sheets';
 
-import { Client, Intents } from 'discord.js';
+import { Client, IntentsBitField } from 'discord.js';
 import { getConnection, In } from 'typeorm';
 import { DiscordGatewayAdapterCreator, joinVoiceChannel } from '@discordjs/voice';
 import { subscribeToPlayer } from './player';
 export const client = new Client({
     intents: [
-        Intents.FLAGS.GUILDS,
-        Intents.FLAGS.GUILD_MESSAGES,
-        Intents.FLAGS.GUILD_VOICE_STATES
+        IntentsBitField.Flags.Guilds,
+        IntentsBitField.Flags.GuildMessages,
+        IntentsBitField.Flags.GuildVoiceStates
     ]
 });
 

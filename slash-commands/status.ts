@@ -1,4 +1,4 @@
-import { CommandInteraction, GuildMember, MessageEmbed } from "discord.js";
+import { CommandInteraction, GuildMember, EmbedBuilder } from "discord.js";
 import { getConnection } from "typeorm";
 import { SlashCommandRunFunction } from "../commands";
 import { ServerPlayingStatus } from "../database";
@@ -19,15 +19,19 @@ export const run: SlashCommandRunFunction = async (interaction) => {
         guildId: interaction.guildId!
     }) ?? new ServerPlayingStatus();
 
-    const embed = new MessageEmbed()
-        .addField('Playing', status.playing ? 'Yes' : 'No')
-        .addField('DJ Role', status.djRoleId ? `<@&${status.djRoleId}>` : 'None')
+    const embed = new EmbedBuilder()
+        .addFields([
+            { name: 'Playing', value: status.playing ? 'Yes' : 'No' },
+            { name: 'DJ', value: status.djRoleId ? `<@&${status.djRoleId}>` : 'None' },
+        ])
         .setColor(process.env.EMBED_COLOR);
 
     if (status.playing) {
-        embed.addField('Channel', `<#${status.channelId}>`)
-        .addField('Started by', `<@${status.starterUserId}>`)
-        .addField('Content', getCurrentlyPlaying());
+        embed.addFields([
+            { name: 'Channel', value: `<#${status.channelId}>` },
+            { name: 'Started by', value: `<@${status.starterUserId}>` },
+            { name: 'Content', value: getCurrentlyPlaying() }
+        ]);
     }
 
     interaction.reply({
