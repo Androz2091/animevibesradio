@@ -73,20 +73,10 @@ client.on('ready', () => {
                     adapterCreator: guild.voiceAdapterCreator as DiscordGatewayAdapterCreator
                 });
 
-                connection.on(VoiceConnectionStatus.Disconnected, async (oldState, newState) => {
-                    try {
-                        await Promise.race([
-                            entersState(connection, VoiceConnectionStatus.Signalling, 5_000),
-                            entersState(connection, VoiceConnectionStatus.Connecting, 5_000),
-                        ]);
-                        // Seems to be reconnecting to a new channel - ignore disconnect
-                    } catch (error) {
-                        // Seems to be a real disconnect which SHOULDN'T be recovered from
-                        connection.destroy();
-                    }
+                entersState(connection, VoiceConnectionStatus.Ready, 30e3).then(() => {
+                    subscribeToPlayer(connection);
                 });
 
-                subscribeToPlayer(connection);
             });
         });
     } else {
